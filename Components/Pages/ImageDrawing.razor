@@ -12,8 +12,14 @@
             <input type="text" class="form-control" @bind="imagePath" placeholder="Enter image path (e.g., sample-image.jpg)" />
             <button class="btn btn-success" @onclick="LoadImage">Load Image</button>
         </div>
+        <div class="zoom-controls">
+            <button class="btn btn-secondary" @onclick="ZoomIn" title="Zoom In">🔍+</button>
+            <button class="btn btn-secondary" @onclick="ZoomOut" title="Zoom Out">🔍-</button>
+            <button class="btn btn-secondary" @onclick="ResetZoom" title="Reset Zoom">Reset</button>
+            <span class="zoom-level">Zoom: @($"{currentZoom:F1}x")</span>
+        </div>
         <button class="btn btn-primary" @onclick="ClearRectangles">Clear Rectangles</button>
-        <span class="info">Click and drag on the image to draw rectangles</span>
+        <span class="info">🖱️ Scroll to zoom | Space+Drag to pan | Click+Drag to draw rectangles</span>
     </div>
     
     <div class="canvas-wrapper">
@@ -23,7 +29,9 @@
                 height="600"
                 @onmousedown="OnMouseDown"
                 @onmousemove="OnMouseMove"
-                @onmouseup="OnMouseUp">
+                @onmouseup="OnMouseUp"
+                @onmouseleave="OnMouseLeave"
+                tabindex="0">
         </canvas>
     </div>
 
@@ -44,17 +52,40 @@
 @code {
     private ElementReference canvasElement;
     private bool isDrawing = false;
+    private bool isPanning = false;
     private Point? startPoint;
     private List<Rectangle> rectangles = new();
     private Rectangle? currentRectangle;
     private string imagePath = "sample-image.jpg";
+    private double currentZoom = 1.0;
+    private System.Threading.Timer? zoomUpdateTimer;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             await JS.InvokeVoidAsync("initializeCanvas", canvasElement);
+            
+            // Start timer to update zoom level display
+            zoomUpdateTimer = new System.Threading.Timer(async _ =>
+            {
+                try
+                {
+                    var zoom = await JS.InvokeAsync<double>("getZoomLevel");
+                    if (Math.Abs(currentZoom - zoom) > 0.01)
+                    {
+                        currentZoom = zoom;
+                        await InvokeAsync(StateHasChanged);
+                    }
+                }
+                catch { }
+            }, null, TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(100));
         }
+    }
+
+    public void Dispose()
+    {
+        zoomUpdateTimer?.Dispose();
     }
 
     private async Task LoadImage()
@@ -69,23 +100,41 @@
 
     private async Task OnMouseDown(MouseEventArgs e)
     {
-        isDrawing = true;
-        var rect = await JS.InvokeAsync<BoundingRect>("getCanvasBoundingRect", canvasElement);
-        startPoint = new Point
+        // Middle mouse button or Space key + left mouse button for panning
+        if (e.Button == 1 || (e.Button == 0 && e.ShiftKey))
         {
-            X = (int)(e.ClientX - rect.Left),
-            Y = (int)(e.ClientY - rect.Top)
-        };
-        currentRectangle = new Rectangle { X = startPoint.X, Y = startPoint.Y, Width = 0, Height = 0 };
+            isPanning = true;
+            await JS.InvokeVoidAsync("startPan", e.ClientX, e.ClientY);
+            return;
+        }
+        
+        // Left mouse button for drawing rectangles
+        if (e.Button == 0 && !e.ShiftKey)
+        {
+            isDrawing = true;
+            var coords = await JS.InvokeAsync<CanvasCoordinates>("screenToCanvasCoordinates", canvasElement, e.ClientX, e.ClientY);
+            startPoint = new Point
+            {
+                X = (int)coords.X,
+                Y = (int)coords.Y
+            };
+            currentRectangle = new Rectangle { X = startPoint.X, Y = startPoint.Y, Width = 0, Height = 0 };
+        }
     }
 
     private async Task OnMouseMove(MouseEventArgs e)
     {
+        if (isPanning)
+        {
+            await JS.InvokeAsync<bool>("updatePan", canvasElement, e.ClientX, e.ClientY);
+            return;
+        }
+        
         if (isDrawing && currentRectangle != null && startPoint != null)
         {
-            var rect = await JS.InvokeAsync<BoundingRect>("getCanvasBoundingRect", canvasElement);
-            var currentX = (int)(e.ClientX - rect.Left);
-            var currentY = (int)(e.ClientY - rect.Top);
+            var coords = await JS.InvokeAsync<CanvasCoordinates>("screenToCanvasCoordinates", canvasElement, e.ClientX, e.ClientY);
+            var currentX = (int)coords.X;
+            var currentY = (int)coords.Y;
 
             currentRectangle.Width = currentX - startPoint.X;
             currentRectangle.Height = currentY - startPoint.Y;
@@ -96,6 +145,13 @@
 
     private async Task OnMouseUp(MouseEventArgs e)
     {
+        if (isPanning)
+        {
+            isPanning = false;
+            await JS.InvokeVoidAsync("endPan");
+            return;
+        }
+        
         if (isDrawing && currentRectangle != null)
         {
             rectangles.Add(new Rectangle
@@ -111,6 +167,15 @@
         }
     }
 
+    private async Task OnMouseLeave(MouseEventArgs e)
+    {
+        if (isPanning)
+        {
+            isPanning = false;
+            await JS.InvokeVoidAsync("endPan");
+        }
+    }
+
     private async Task DrawAll()
     {
         await JS.InvokeVoidAsync("redrawCanvas", canvasElement, rectangles, currentRectangle);
@@ -121,6 +186,21 @@
         rectangles.Clear();
         currentRectangle = null;
         await DrawAll();
+    }
+
+    private async Task ZoomIn()
+    {
+        await JS.InvokeVoidAsync("zoomIn", canvasElement);
+    }
+
+    private async Task ZoomOut()
+    {
+        await JS.InvokeVoidAsync("zoomOut", canvasElement);
+    }
+
+    private async Task ResetZoom()
+    {
+        await JS.InvokeVoidAsync("resetZoom", canvasElement);
     }
 
     public class Point
@@ -141,5 +221,11 @@
     {
         public double Left { get; set; }
         public double Top { get; set; }
+    }
+
+    public class CanvasCoordinates
+    {
+        public double X { get; set; }
+        public double Y { get; set; }
     }
 }
