@@ -1,0 +1,73 @@
+.drawing-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}
+
+.image-loader {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex: 1;
+    min-width: 300px;
+}
+
+.image-loader input {
+    flex: 1;
+    max-width: 400px;
+}
+
+.controls .info {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.canvas-wrapper {
+    display: inline-block;
+    border: 2px solid #dee2e6;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    background-color: white;
+}
+
+#drawingCanvas {
+    display: block;
+    cursor: crosshair;
+}
+
+.rectangles-list {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}
+
+.rectangles-list h3 {
+    font-size: 1.2rem;
+    margin-bottom: 0.75rem;
+}
+
+.rectangles-list ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.rectangles-list li {
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    background-color: white;
+    border-left: 3px solid #ff0000;
+    border-radius: 2px;
+    font-family: monospace;
+    font-size: 0.9rem;
+}

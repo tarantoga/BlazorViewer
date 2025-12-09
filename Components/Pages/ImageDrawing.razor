@@ -1,0 +1,145 @@
+@page "/image-drawing"
+@rendermode InteractiveServer
+@inject IJSRuntime JS
+
+<PageTitle>Image Drawing</PageTitle>
+
+<h1>Image Drawing Tool</h1>
+
+<div class="drawing-container">
+    <div class="controls">
+        <div class="image-loader">
+            <input type="text" class="form-control" @bind="imagePath" placeholder="Enter image path (e.g., sample-image.jpg)" />
+            <button class="btn btn-success" @onclick="LoadImage">Load Image</button>
+        </div>
+        <button class="btn btn-primary" @onclick="ClearRectangles">Clear Rectangles</button>
+        <span class="info">Click and drag on the image to draw rectangles</span>
+    </div>
+    
+    <div class="canvas-wrapper">
+        <canvas @ref="canvasElement" 
+                id="drawingCanvas" 
+                width="800" 
+                height="600"
+                @onmousedown="OnMouseDown"
+                @onmousemove="OnMouseMove"
+                @onmouseup="OnMouseUp">
+        </canvas>
+    </div>
+
+    @if (rectangles.Any())
+    {
+        <div class="rectangles-list">
+            <h3>Drawn Rectangles (@rectangles.Count)</h3>
+            <ul>
+                @foreach (var (rect, index) in rectangles.Select((r, i) => (r, i)))
+                {
+                    <li>Rectangle @(index + 1): X=@rect.X, Y=@rect.Y, Width=@rect.Width, Height=@rect.Height</li>
+                }
+            </ul>
+        </div>
+    }
+</div>
+
+@code {
+    private ElementReference canvasElement;
+    private bool isDrawing = false;
+    private Point? startPoint;
+    private List<Rectangle> rectangles = new();
+    private Rectangle? currentRectangle;
+    private string imagePath = "sample-image.jpg";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("initializeCanvas", canvasElement);
+        }
+    }
+
+    private async Task LoadImage()
+    {
+        if (!string.IsNullOrWhiteSpace(imagePath))
+        {
+            rectangles.Clear();
+            currentRectangle = null;
+            await JS.InvokeVoidAsync("loadImageByPath", canvasElement, imagePath);
+        }
+    }
+
+    private async Task OnMouseDown(MouseEventArgs e)
+    {
+        isDrawing = true;
+        var rect = await JS.InvokeAsync<BoundingRect>("getCanvasBoundingRect", canvasElement);
+        startPoint = new Point
+        {
+            X = (int)(e.ClientX - rect.Left),
+            Y = (int)(e.ClientY - rect.Top)
+        };
+        currentRectangle = new Rectangle { X = startPoint.X, Y = startPoint.Y, Width = 0, Height = 0 };
+    }
+
+    private async Task OnMouseMove(MouseEventArgs e)
+    {
+        if (isDrawing && currentRectangle != null && startPoint != null)
+        {
+            var rect = await JS.InvokeAsync<BoundingRect>("getCanvasBoundingRect", canvasElement);
+            var currentX = (int)(e.ClientX - rect.Left);
+            var currentY = (int)(e.ClientY - rect.Top);
+
+            currentRectangle.Width = currentX - startPoint.X;
+            currentRectangle.Height = currentY - startPoint.Y;
+
+            await DrawAll();
+        }
+    }
+
+    private async Task OnMouseUp(MouseEventArgs e)
+    {
+        if (isDrawing && currentRectangle != null)
+        {
+            rectangles.Add(new Rectangle
+            {
+                X = currentRectangle.X,
+                Y = currentRectangle.Y,
+                Width = currentRectangle.Width,
+                Height = currentRectangle.Height
+            });
+            currentRectangle = null;
+            isDrawing = false;
+            await DrawAll();
+        }
+    }
+
+    private async Task DrawAll()
+    {
+        await JS.InvokeVoidAsync("redrawCanvas", canvasElement, rectangles, currentRectangle);
+    }
+
+    private async Task ClearRectangles()
+    {
+        rectangles.Clear();
+        currentRectangle = null;
+        await DrawAll();
+    }
+
+    public class Point
+    {
+        public int X { get; set; }
+        public int Y { get; set; }
+    }
+
+    public class Rectangle
+    {
+        public int X { get; set; }
+        public int Y { get; set; }
+        public int Width { get; set; }
+        public int Height { get; set; }
+    }
+
+    public class BoundingRect
+    {
+        public double Left { get; set; }
+        public double Top { get; set; }
+    }
+}
