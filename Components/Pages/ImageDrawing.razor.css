@@ -1,14 +1,22 @@
 .page-container {
+    position: fixed;
+    top: 3.5rem;
+    left: 250px;
+    right: 0;
+    bottom: 0;
     display: flex;
-    height: calc(100vh - 60px);
-    width: 100%;
     gap: 0;
     overflow: hidden;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    width: calc(100vw - 250px);
+    height: calc(100vh - 3.5rem);
 }
 
 .sidebar-left {
-    width: 15%;
-    min-width: 250px;
+    width: 280px;
+    flex-shrink: 0;
     background-color: #f8f9fa;
     border-right: 2px solid #dee2e6;
     padding: 1.5rem 1rem;
@@ -106,7 +114,6 @@
 }
 
 .canvas-area {
-    width: 85%;
     flex: 1;
     background-color: #e9ecef;
     display: flex;
@@ -133,33 +140,22 @@
 }
 
 /* Responsive adjustments */
-@media (max-width: 1200px) {
-    .sidebar-left {
-        width: 20%;
-        min-width: 220px;
-    }
-    
-    .canvas-area {
-        width: 80%;
-    }
-}
-
 @media (max-width: 768px) {
     .page-container {
         flex-direction: column;
         height: auto;
+        margin: 0;
     }
     
     .sidebar-left {
         width: 100%;
-        min-width: auto;
+        flex-shrink: 1;
         border-right: none;
         border-bottom: 2px solid #dee2e6;
         max-height: 50vh;
     }
     
     .canvas-area {
-        width: 100%;
         min-height: 50vh;
     }
 }
