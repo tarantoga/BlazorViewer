@@ -124,8 +124,8 @@
     -moz-user-select: none;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     background-color: white;
-    max-width: 100%;
-    height: auto;
+    /* Remove max-width to allow canvas to grow beyond viewport when zoomed */
+    /* This enables scrollbars to appear */
 }
 
 #drawingCanvas:active {
