@@ -99,9 +99,10 @@ window.getCanvasBoundingRect = function(canvas) {
 
 window.screenToCanvasCoordinates = function(canvas, clientX, clientY) {
     const rect = canvas.getBoundingClientRect();
-    // Convert from screen coordinates to canvas coordinates
-    const x = ((clientX - rect.left) / rect.width) * canvas.width;
-    const y = ((clientY - rect.top) / rect.height) * canvas.height;
+    // Convert from screen coordinates to base (unzoomed) canvas coordinates
+    // This ensures rectangles are stored in base coordinates
+    const x = ((clientX - rect.left) / rect.width) * baseCanvasWidth;
+    const y = ((clientY - rect.top) / rect.height) * baseCanvasHeight;
     return { x: x, y: y };
 };
 
