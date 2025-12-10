@@ -1,61 +1,119 @@
-.drawing-container {
-    max-width: 900px;
-    margin: 0 auto;
+.page-container {
+    display: flex;
+    height: calc(100vh - 60px);
+    width: 100%;
+    gap: 0;
+    overflow: hidden;
 }
 
-.controls {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 1rem;
-    padding: 1rem;
+.sidebar-left {
+    width: 15%;
+    min-width: 250px;
     background-color: #f8f9fa;
-    border-radius: 4px;
+    border-right: 2px solid #dee2e6;
+    padding: 1.5rem 1rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
 }
 
-.image-loader {
+.sidebar-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #212529;
+    margin: 0 0 0.5rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.control-section {
     display: flex;
+    flex-direction: column;
     gap: 0.5rem;
-    align-items: center;
-    flex: 1;
-    min-width: 300px;
 }
 
-.image-loader input {
-    flex: 1;
-    max-width: 400px;
+.control-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.25rem;
 }
 
-.zoom-controls {
+.btn-block {
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+.zoom-buttons {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     gap: 0.5rem;
 }
 
 .zoom-level {
     font-weight: 600;
     color: #495057;
-    min-width: 80px;
     text-align: center;
-    padding: 0.375rem 0.75rem;
+    padding: 0.5rem;
     background-color: white;
     border-radius: 4px;
     border: 1px solid #dee2e6;
+    margin-top: 0.5rem;
 }
 
-.controls .info {
-    color: #6c757d;
-    font-size: 0.9rem;
-    flex-basis: 100%;
-}
-
-.canvas-wrapper {
-    display: inline-block;
-    border: 2px solid #dee2e6;
+.info-section {
+    background-color: #e9ecef;
+    padding: 1rem;
     border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-left: 3px solid #0d6efd;
+}
+
+.info-text {
+    font-size: 0.8rem;
+    color: #495057;
+    margin: 0;
+    line-height: 1.6;
+}
+
+.rectangles-list {
+    margin-top: 0;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.rectangles-list h4 {
+    font-size: 0.95rem;
+    margin-bottom: 0.75rem;
+    color: #212529;
+}
+
+.rectangles-list ul {
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.rectangles-list li {
+    padding: 0.4rem 0.6rem;
+    margin-bottom: 0.4rem;
     background-color: white;
+    border-left: 3px solid #ff0000;
+    border-radius: 2px;
+    font-family: monospace;
+    font-size: 0.75rem;
+    color: #495057;
+}
+
+.canvas-area {
+    width: 85%;
+    flex: 1;
+    background-color: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: auto;
+    padding: 1rem;
 }
 
 #drawingCanvas {
@@ -64,35 +122,44 @@
     user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    background-color: white;
+    max-width: 100%;
+    max-height: 100%;
 }
 
 #drawingCanvas:active {
     cursor: grabbing;
 }
 
-.rectangles-list {
-    margin-top: 1.5rem;
-    padding: 1rem;
-    background-color: #f8f9fa;
-    border-radius: 4px;
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+    .sidebar-left {
+        width: 20%;
+        min-width: 220px;
+    }
+    
+    .canvas-area {
+        width: 80%;
+    }
 }
 
-.rectangles-list h3 {
-    font-size: 1.2rem;
-    margin-bottom: 0.75rem;
-}
-
-.rectangles-list ul {
-    list-style-type: none;
-    padding-left: 0;
-}
-
-.rectangles-list li {
-    padding: 0.5rem;
-    margin-bottom: 0.5rem;
-    background-color: white;
-    border-left: 3px solid #ff0000;
-    border-radius: 2px;
-    font-family: monospace;
-    font-size: 0.9rem;
+@media (max-width: 768px) {
+    .page-container {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    .sidebar-left {
+        width: 100%;
+        min-width: auto;
+        border-right: none;
+        border-bottom: 2px solid #dee2e6;
+        max-height: 50vh;
+    }
+    
+    .canvas-area {
+        width: 100%;
+        min-height: 50vh;
+    }
 }

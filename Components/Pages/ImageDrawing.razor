@@ -4,29 +4,59 @@
 
 <PageTitle>Image Drawing</PageTitle>
 
-<h1>Image Drawing Tool</h1>
+<div class="page-container">
+    <div class="sidebar-left">
+        <h3 class="sidebar-title">Image Viewer</h3>
+        
+        <div class="control-section">
+            <label class="control-label">Image Path</label>
+            <input type="text" class="form-control" @bind="imagePath" placeholder="sample-image.jpg" />
+            <button class="btn btn-success btn-block" @onclick="LoadImage">📂 Load Image</button>
+        </div>
 
-<div class="drawing-container">
-    <div class="controls">
-        <div class="image-loader">
-            <input type="text" class="form-control" @bind="imagePath" placeholder="Enter image path (e.g., sample-image.jpg)" />
-            <button class="btn btn-success" @onclick="LoadImage">Load Image</button>
+        <div class="control-section">
+            <label class="control-label">Zoom Controls</label>
+            <div class="zoom-buttons">
+                <button class="btn btn-secondary btn-block" @onclick="ZoomIn" title="Zoom In">🔍+ Zoom In</button>
+                <button class="btn btn-secondary btn-block" @onclick="ZoomOut" title="Zoom Out">🔍- Zoom Out</button>
+                <button class="btn btn-secondary btn-block" @onclick="ResetZoom" title="Reset Zoom">↺ Reset</button>
+            </div>
+            <div class="zoom-level">Zoom: @($"{currentZoom:F1}x")</div>
         </div>
-        <div class="zoom-controls">
-            <button class="btn btn-secondary" @onclick="ZoomIn" title="Zoom In">🔍+</button>
-            <button class="btn btn-secondary" @onclick="ZoomOut" title="Zoom Out">🔍-</button>
-            <button class="btn btn-secondary" @onclick="ResetZoom" title="Reset Zoom">Reset</button>
-            <span class="zoom-level">Zoom: @($"{currentZoom:F1}x")</span>
+
+        <div class="control-section">
+            <label class="control-label">Drawing Tools</label>
+            <button class="btn btn-primary btn-block" @onclick="ClearRectangles">🗑️ Clear Rectangles</button>
         </div>
-        <button class="btn btn-primary" @onclick="ClearRectangles">Clear Rectangles</button>
-        <span class="info">🖱️ Scroll to zoom | Space+Drag to pan | Click+Drag to draw rectangles</span>
+
+        <div class="info-section">
+            <p class="info-text">
+                <strong>Controls:</strong><br/>
+                🖱️ Scroll to zoom<br/>
+                Shift+Drag to pan<br/>
+                Click+Drag to draw
+            </p>
+        </div>
+
+        @if (rectangles.Any())
+        {
+            <div class="rectangles-list">
+                <h4>Rectangles (@rectangles.Count)</h4>
+                <ul>
+                    @foreach (var (rect, index) in rectangles.Select((r, i) => (r, i)))
+                    {
+                        <li>@(index + 1): X=@rect.X, Y=@rect.Y, W=@rect.Width, H=@rect.Height</li>
+                    }
+                </ul>
+            </div>
+        }
     </div>
-    
-    <div class="canvas-wrapper">
+
+    <div class="canvas-area">
         <canvas @ref="canvasElement" 
                 id="drawingCanvas" 
-                width="800" 
-                height="600"
+                width="1200" 
+                height="1600"
                 @onmousedown="OnMouseDown"
                 @onmousemove="OnMouseMove"
                 @onmouseup="OnMouseUp"
@@ -34,19 +64,6 @@
                 tabindex="0">
         </canvas>
     </div>
-
-    @if (rectangles.Any())
-    {
-        <div class="rectangles-list">
-            <h3>Drawn Rectangles (@rectangles.Count)</h3>
-            <ul>
-                @foreach (var (rect, index) in rectangles.Select((r, i) => (r, i)))
-                {
-                    <li>Rectangle @(index + 1): X=@rect.X, Y=@rect.Y, Width=@rect.Width, Height=@rect.Height</li>
-                }
-            </ul>
-        </div>
-    }
 </div>
 
 @code {

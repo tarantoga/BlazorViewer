@@ -60,9 +60,15 @@ window.loadImageByPath = function(canvas, imagePath) {
     canvasImage.onload = function() {
         imageLoaded = true;
         
-        // Adjust canvas size to match image aspect ratio
-        const maxWidth = 800;
-        const maxHeight = 600;
+        // Get available space for canvas (85% of viewport width minus padding)
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        
+        // Calculate max dimensions based on new layout
+        // 85% for canvas area, but leave some margin
+        const maxWidth = Math.min(viewportWidth * 0.80, 1400);
+        const maxHeight = viewportHeight - 120; // Account for header and padding
+        
         const imgWidth = canvasImage.width;
         const imgHeight = canvasImage.height;
         const imgAspectRatio = imgWidth / imgHeight;
@@ -70,21 +76,24 @@ window.loadImageByPath = function(canvas, imagePath) {
         let newWidth, newHeight;
         
         // Fit image within max dimensions while preserving aspect ratio
-        if (imgWidth > imgHeight) {
-            newWidth = Math.min(imgWidth, maxWidth);
-            newHeight = newWidth / imgAspectRatio;
-            
-            if (newHeight > maxHeight) {
-                newHeight = maxHeight;
-                newWidth = newHeight * imgAspectRatio;
-            }
-        } else {
+        // Prioritize height for portrait documents
+        if (imgHeight > imgWidth) {
+            // Portrait orientation - prioritize height
             newHeight = Math.min(imgHeight, maxHeight);
             newWidth = newHeight * imgAspectRatio;
             
             if (newWidth > maxWidth) {
                 newWidth = maxWidth;
                 newHeight = newWidth / imgAspectRatio;
+            }
+        } else {
+            // Landscape orientation - prioritize width
+            newWidth = Math.min(imgWidth, maxWidth);
+            newHeight = newWidth / imgAspectRatio;
+            
+            if (newHeight > maxHeight) {
+                newHeight = maxHeight;
+                newWidth = newHeight * imgAspectRatio;
             }
         }
         
