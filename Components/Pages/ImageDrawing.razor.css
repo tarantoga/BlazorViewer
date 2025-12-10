@@ -110,7 +110,7 @@
     flex: 1;
     background-color: #e9ecef;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     overflow: auto;
     padding: 1rem;
@@ -125,7 +125,7 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     background-color: white;
     max-width: 100%;
-    max-height: 100%;
+    height: auto;
 }
 
 #drawingCanvas:active {

@@ -60,42 +60,22 @@ window.loadImageByPath = function(canvas, imagePath) {
     canvasImage.onload = function() {
         imageLoaded = true;
         
-        // Get available space for canvas (85% of viewport width minus padding)
+        // Get available space for canvas (85% of viewport width minus padding and sidebar)
         const viewportWidth = window.innerWidth;
-        const viewportHeight = window.innerHeight;
         
-        // Calculate max dimensions based on new layout
-        // 85% for canvas area, but leave some margin
-        const maxWidth = Math.min(viewportWidth * 0.80, 1400);
-        const maxHeight = viewportHeight - 120; // Account for header and padding
+        // Calculate available width: 85% of viewport minus sidebar and padding
+        // Sidebar is ~15% (min 250px), so canvas area gets remaining space
+        const sidebarWidth = Math.max(viewportWidth * 0.15, 250);
+        const availableWidth = viewportWidth - sidebarWidth - 60; // 60px for padding
         
         const imgWidth = canvasImage.width;
         const imgHeight = canvasImage.height;
         const imgAspectRatio = imgWidth / imgHeight;
         
-        let newWidth, newHeight;
-        
-        // Fit image within max dimensions while preserving aspect ratio
-        // Prioritize height for portrait documents
-        if (imgHeight > imgWidth) {
-            // Portrait orientation - prioritize height
-            newHeight = Math.min(imgHeight, maxHeight);
-            newWidth = newHeight * imgAspectRatio;
-            
-            if (newWidth > maxWidth) {
-                newWidth = maxWidth;
-                newHeight = newWidth / imgAspectRatio;
-            }
-        } else {
-            // Landscape orientation - prioritize width
-            newWidth = Math.min(imgWidth, maxWidth);
-            newHeight = newWidth / imgAspectRatio;
-            
-            if (newHeight > maxHeight) {
-                newHeight = maxHeight;
-                newWidth = newHeight * imgAspectRatio;
-            }
-        }
+        // Scale based on width - prioritize showing full width
+        // Height will be proportional, allowing vertical scrolling if needed
+        let newWidth = Math.min(imgWidth, availableWidth);
+        let newHeight = newWidth / imgAspectRatio;
         
         // Update canvas dimensions
         canvas.width = Math.round(newWidth);
