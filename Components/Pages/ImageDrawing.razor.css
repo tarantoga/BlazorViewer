@@ -139,6 +139,14 @@
     cursor: grabbing;
 }
 
+.canvas-area.panning {
+    cursor: grabbing !important;
+}
+
+.canvas-area.panning #drawingCanvas {
+    cursor: grabbing !important;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .page-container {

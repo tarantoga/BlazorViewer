@@ -154,17 +154,21 @@ window.startPan = function(clientX, clientY) {
 };
 
 window.updatePan = function(canvas, clientX, clientY) {
-    if (!isPanning || !imageLoaded) return false;
+    if (!isPanning) return false;
     
     const dx = clientX - lastPanPoint.x;
     const dy = clientY - lastPanPoint.y;
     
-    panOffset.x += dx;
-    panOffset.y += dy;
+    // Get the scrollable container (canvas-area)
+    const scrollContainer = canvas.closest('.canvas-area');
+    if (scrollContainer) {
+        // Pan by adjusting scroll position (inverted for natural feel)
+        scrollContainer.scrollLeft -= dx;
+        scrollContainer.scrollTop -= dy;
+    }
     
     lastPanPoint = { x: clientX, y: clientY };
     
-    window.redrawCanvas(canvas, window.currentRectangles || [], window.currentDrawingRect || null);
     return true;
 };
 
