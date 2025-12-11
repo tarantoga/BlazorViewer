@@ -26,9 +26,39 @@ function setupZoomListener(canvas) {
         e.preventDefault();
         if (!state.isImageLoaded) return;
         
+        // Get scroll container
+        const scrollContainer = canvas.closest('.canvas-area');
+        if (!scrollContainer) return;
+        
+        // Get mouse position relative to the viewport
+        const rect = scrollContainer.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        
+        // Get current scroll position
+        const scrollX = scrollContainer.scrollLeft;
+        const scrollY = scrollContainer.scrollTop;
+        
+        // Calculate mouse position in the scrolled content
+        const contentX = mouseX + scrollX;
+        const contentY = mouseY + scrollY;
+        
+        // Apply zoom
+        const oldZoom = state.zoomLevel;
         const zoomDelta = e.deltaY > 0 ? 0.9 : 1.1;
         state.zoomLevel = Math.max(0.1, Math.min(10, state.zoomLevel * zoomDelta));
+        
+        // Render with new zoom
         renderCanvas(canvas);
+        
+        // Calculate new scroll position to keep the point under the cursor
+        const zoomRatio = state.zoomLevel / oldZoom;
+        const newScrollX = contentX * zoomRatio - mouseX;
+        const newScrollY = contentY * zoomRatio - mouseY;
+        
+        // Apply new scroll position
+        scrollContainer.scrollLeft = newScrollX;
+        scrollContainer.scrollTop = newScrollY;
     });
 }
 
