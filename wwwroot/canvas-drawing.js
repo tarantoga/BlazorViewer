@@ -46,7 +46,7 @@ function setupZoomListener(canvas) {
         // Apply zoom
         const oldZoom = state.zoomLevel;
         const zoomDelta = e.deltaY > 0 ? 0.9 : 1.1;
-        state.zoomLevel = Math.max(0.1, Math.min(10, state.zoomLevel * zoomDelta));
+        state.zoomLevel = Math.max(0.4, Math.min(5, state.zoomLevel * zoomDelta));
         
         // Render with new zoom
         renderCanvas(canvas);
@@ -185,13 +185,13 @@ function scaleRectangle(rect) {
 // ============================================================================
 window.zoomIn = function(canvas) {
     if (!state.isImageLoaded) return;
-    state.zoomLevel = Math.min(10, state.zoomLevel * 1.2);
+    state.zoomLevel = Math.min(5, state.zoomLevel * 1.2);
     renderCanvas(canvas);
 };
 
 window.zoomOut = function(canvas) {
     if (!state.isImageLoaded) return;
-    state.zoomLevel = Math.max(0.1, state.zoomLevel / 1.2);
+    state.zoomLevel = Math.max(0.4, state.zoomLevel / 1.2);
     renderCanvas(canvas);
 };
 
