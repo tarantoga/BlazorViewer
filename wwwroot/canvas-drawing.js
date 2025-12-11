@@ -30,33 +30,49 @@ function setupZoomListener(canvas) {
         const scrollContainer = canvas.closest('.canvas-area');
         if (!scrollContainer) return;
         
-        // Get mouse position relative to the viewport
-        const rect = scrollContainer.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
+        // Store old zoom
+        const oldZoom = state.zoomLevel;
         
-        // Get current scroll position
-        const scrollX = scrollContainer.scrollLeft;
-        const scrollY = scrollContainer.scrollTop;
-        
-        // Calculate mouse position in the scrolled content
-        const contentX = mouseX + scrollX;
-        const contentY = mouseY + scrollY;
+        // Get mouse position relative to the canvas itself
+        const canvasRect = canvas.getBoundingClientRect();
+        const mouseXInCanvas = e.clientX - canvasRect.left;
+        const mouseYInCanvas = e.clientY - canvasRect.top;
         
         // Apply zoom
-        const oldZoom = state.zoomLevel;
         const zoomDelta = e.deltaY > 0 ? 0.9 : 1.1;
-        state.zoomLevel = Math.max(0.3, Math.min(8, state.zoomLevel * zoomDelta));
+        const newZoom = Math.max(0.4, Math.min(5, state.zoomLevel * zoomDelta));
         
-        // Render with new zoom
-        renderCanvas(canvas);
+        // Only update if zoom actually changed
+        if (newZoom === state.zoomLevel) return;
         
-        // Calculate new scroll position to keep the point under the cursor
+        state.zoomLevel = newZoom;
+        
+        // Update canvas size (CSS only, not internal resolution)
+        updateCanvasSize(canvas);
+        
+        // Redraw rectangles with new zoom
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawImage(ctx, canvas);
+        drawRectangles(ctx);
+        
+        // Calculate how much the canvas size changed
         const zoomRatio = state.zoomLevel / oldZoom;
-        const newScrollX = contentX * zoomRatio - mouseX;
-        const newScrollY = contentY * zoomRatio - mouseY;
         
-        // Apply new scroll position
+        // Calculate new canvas position to keep mouse point stationary
+        // New offset = old offset scaled by zoom ratio
+        const newCanvasRect = canvas.getBoundingClientRect();
+        const containerRect = scrollContainer.getBoundingClientRect();
+        
+        // Desired position of mouse in new canvas
+        const newMouseXInCanvas = mouseXInCanvas * zoomRatio;
+        const newMouseYInCanvas = mouseYInCanvas * zoomRatio;
+        
+        // Calculate required scroll to keep mouse at same viewport position
+        const newScrollX = (newCanvasRect.left - containerRect.left) + newMouseXInCanvas - (e.clientX - containerRect.left);
+        const newScrollY = (newCanvasRect.top - containerRect.top) + newMouseYInCanvas - (e.clientY - containerRect.top);
+        
+        // Apply scroll adjustment
         scrollContainer.scrollLeft = newScrollX;
         scrollContainer.scrollTop = newScrollY;
     });
