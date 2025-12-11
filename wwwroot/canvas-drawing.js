@@ -46,7 +46,7 @@ function setupZoomListener(canvas) {
         // Apply zoom
         const oldZoom = state.zoomLevel;
         const zoomDelta = e.deltaY > 0 ? 0.9 : 1.1;
-        state.zoomLevel = Math.max(0.4, Math.min(5, state.zoomLevel * zoomDelta));
+        state.zoomLevel = Math.max(0.3, Math.min(8, state.zoomLevel * zoomDelta));
         
         // Render with new zoom
         renderCanvas(canvas);
@@ -121,13 +121,18 @@ function drawPlaceholder(canvas, ctx, message) {
 }
 
 function updateCanvasSize(canvas) {
+    // Set canvas internal resolution once (based on base size)
+    if (canvas.width !== state.baseCanvasSize.width || canvas.height !== state.baseCanvasSize.height) {
+        canvas.width = state.baseCanvasSize.width;
+        canvas.height = state.baseCanvasSize.height;
+    }
+    
+    // Use CSS transform for scaling - much more performant
     const displayWidth = Math.round(state.baseCanvasSize.width * state.zoomLevel);
     const displayHeight = Math.round(state.baseCanvasSize.height * state.zoomLevel);
     
     canvas.style.width = `${displayWidth}px`;
     canvas.style.height = `${displayHeight}px`;
-    canvas.width = displayWidth;
-    canvas.height = displayHeight;
 }
 
 function renderCanvas(canvas) {
@@ -148,36 +153,28 @@ function drawImage(ctx, canvas) {
 }
 
 function drawRectangles(ctx) {
+    // Draw rectangles at base size (zoom is handled by CSS)
     // Draw completed rectangles
     ctx.strokeStyle = '#ff0000';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2 / state.zoomLevel; // Adjust line width for zoom
     ctx.fillStyle = 'rgba(255, 0, 0, 0.1)';
     
     state.currentRectangles.forEach(rect => {
-        const scaled = scaleRectangle(rect);
-        ctx.strokeRect(scaled.x, scaled.y, scaled.width, scaled.height);
-        ctx.fillRect(scaled.x, scaled.y, scaled.width, scaled.height);
+        ctx.strokeRect(rect.x, rect.y, rect.width, rect.height);
+        ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
     });
     
     // Draw current rectangle being drawn
     if (state.currentDrawingRect) {
         ctx.strokeStyle = '#00ff00';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 2 / state.zoomLevel; // Adjust line width for zoom
         ctx.fillStyle = 'rgba(0, 255, 0, 0.1)';
         
-        const scaled = scaleRectangle(state.currentDrawingRect);
-        ctx.strokeRect(scaled.x, scaled.y, scaled.width, scaled.height);
-        ctx.fillRect(scaled.x, scaled.y, scaled.width, scaled.height);
+        ctx.strokeRect(state.currentDrawingRect.x, state.currentDrawingRect.y, 
+                      state.currentDrawingRect.width, state.currentDrawingRect.height);
+        ctx.fillRect(state.currentDrawingRect.x, state.currentDrawingRect.y, 
+                    state.currentDrawingRect.width, state.currentDrawingRect.height);
     }
-}
-
-function scaleRectangle(rect) {
-    return {
-        x: rect.x * state.zoomLevel,
-        y: rect.y * state.zoomLevel,
-        width: rect.width * state.zoomLevel,
-        height: rect.height * state.zoomLevel
-    };
 }
 
 // ============================================================================
